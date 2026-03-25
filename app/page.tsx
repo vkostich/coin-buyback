@@ -309,7 +309,7 @@ export default function App() {
           backMimeType: verifyBackMime,
           offerId,
           phrase,
-          certNumber: psaData?.certNumber || certNumber,
+          certNumber: pcgsData?.certNo || certNumber,
           cardName: cardInfo?.name,
         }),
       });
