@@ -152,48 +152,40 @@ Return ONLY the cert number digits. Return NULL only if completely unreadable.`,
     }
     content.push({
       type: "text",
-      text: `You are the world's foremost Garbage Pail Kids card expert with complete knowledge of every GPK card ever made.
+      text: `You are the world's foremost expert on PCGS-graded coins with complete knowledge of US and world coinage.
 
-${psaData ? `PSA CERT DATA (treat as authoritative):
-- Card Name: ${psaData.cardName}
+${psaData ? `PCGS CERT DATA (treat as authoritative):
+- Coin Name: ${psaData.coinName}
 - Year: ${psaData.year}
-- Set: ${psaData.series}
-- Card Number: ${psaData.cardNumber}
+- Denomination: ${psaData.denomination}
+- Mint Mark: ${psaData.mintMark || "None"}
 - Grade: ${psaData.grade}
-- Grade Description: ${psaData.gradeDescription || ""}
-- Variety: ${psaData.variety || "Standard"}
-- PSA Cert: ${psaData.certNumber}
+- Designation: ${psaData.designation || ""}
+- Variety: ${psaData.variety || ""}
+- PCGS Cert: ${psaData.certNo}
 
-Use the PSA grade description for the condition field (e.g. PSA 10 = "Gem Mint", PSA 9 = "Mint", PSA 8 = "Near Mint-Mint", PSA 7 = "Near Mint", PSA 6 = "Excellent-Mint", PSA 5 = "Excellent", PSA 4 = "Very Good-Excellent", PSA 3 = "Very Good", PSA 2 = "Good", PSA 1 = "Poor").
-Set estimatedGrade to match PSA grade exactly (e.g. "PSA 10").` : certNumber ? `PSA Cert Number: ${certNumber}` : "No PSA data available."}
+Set estimatedGrade to match PCGS grade exactly (e.g. "MS65", "PR70DCAM").` : certNumber ? `PSA Cert Number: ${certNumber}` : "No PSA data available."}
 
-FINISH DETERMINATION (very important):
-${isGlossy
-  ? '*** PSA HAS EXPLICITLY CERTIFIED THIS AS GLOSSY. Set finish to "Glossy" and finishSource to "PSA". Do NOT override this with visual inspection. ***'
-  : psaData
-    ? 'PSA data is present but does NOT indicate glossy — set finish to "Matte" and finishSource to "PSA".'
-    : `No PSA data. Examine the card surface carefully:
-- GLOSSY cards: shiny, reflective surface, light reflects off the surface like a mirror, colors appear vivid and saturated
-- MATTE cards: flat, non-reflective, dull surface, colors appear more subdued
-- Look for light reflections, sheen, or shine on the card surface
-- When in doubt, lean toward Glossy if there is ANY reflectivity visible
-Set finishSource to "Visual".`
-}
+SLAB VERIFICATION:
+Examine the slab carefully:
+- Confirm the label color (PCGS blue = standard, green = Secure Plus, gold = First Strike or special)
+- Check for any slab cracking, tampering, or insert switching
+- Confirm cert number on slab matches the cert number provided
+- Flag any discrepancy between the coin visible and the label description
 
 Analyze this card and return ONLY valid JSON with no markdown or backticks:
 {
-  "name": "character name",
-  "series": "e.g. Series 1",
-  "year": "e.g. 1985",
-  "cardNumber": "e.g. 8a",
-  "variant": "a or b",
-  "condition": "Mint / Near Mint / Excellent / Very Good / Good / Poor",
-  "estimatedGrade": "e.g. PSA 8",
-  "finish": "Glossy or Matte",
-  "finishSource": "PSA or Visual",
-  "setName": "official set name",
-  "manufacturer": "Topps",
-  "notes": "observations about the card",
+  "coinName": "e.g. 1921-S Morgan Dollar",
+  "year": "e.g. 1921",
+  "denomination": "e.g. Morgan Dollar",
+  "mintMark": "e.g. S, D, O, CC or None",
+  "grade": "e.g. MS65, PR70DCAM",
+  "designation": "e.g. DCAM, RD, CAM or empty",
+  "variety": "e.g. VAM-4 or empty",
+  "gradingService": "PCGS",
+  "labelType": "e.g. Blue, Green, Gold",
+  "slabIntegrity": "Intact or Compromised",
+  "notes": "any observations about the coin or slab",
   "confidence": "High / Medium / Low"
 }`,
     });
