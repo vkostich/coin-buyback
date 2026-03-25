@@ -322,7 +322,7 @@ export default function App() {
         body: JSON.stringify({
           type: result.approved ? "verification_approved" : "verification_received",
           to: sellerEmail,
-          sellerName, cardInfo, psaData, offer,
+          sellerName, cardInfo, pcgsData, offer,
           submissionId,
           shippingOption: offer?.shippingOptions?.[0]?.label,
         }),
