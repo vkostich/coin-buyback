@@ -10,6 +10,11 @@ async function pcgsFetch(path) {
   return res.json();
 }
 
+function parseGradeNumber(grade) {
+  const match = grade?.match(/(\d+)/);
+  return match ? parseInt(match[1]) : null;
+}
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const certNo = searchParams.get('certNo')?.replace(/\D/g, '');
@@ -19,6 +24,7 @@ export async function GET(request) {
   }
 
   try {
+    // Call 1: coin identity + cert-specific auction list
     const data = await pcgsFetch(
       `/coindetail/GetCoinFactsByCertNo/${certNo}?retrieveAllData=true`
     );
@@ -27,7 +33,8 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Cert not found' }, { status: 404 });
     }
 
-    const soldRecords = (data.AuctionList || [])
+    // Build sold records from cert-specific auctions
+    let soldRecords = (data.AuctionList || [])
       .filter(a => a.Price > 0)
       .map(a => ({
         price: a.Price,
@@ -38,6 +45,37 @@ export async function GET(request) {
         url: a.AuctionLotUrl
       }))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Call 2: if no cert-specific auctions, fall back to grade-level APR
+    if (soldRecords.length === 0 && data.PCGSNo) {
+      const gradeNum = parseGradeNumber(data.Grade);
+      const isPlusGrade = data.Grade?.includes('+');
+
+      if (gradeNum) {
+        try {
+          const aprData = await pcgsFetch(
+            `/coindetail/GetAPRByGrade?PCGSNo=${data.PCGSNo}&GradeNo=${gradeNum}&PlusGrade=${isPlusGrade}&NumberOfRecords=10`
+          );
+
+          if (aprData.IsValidRequest && aprData.Auctions?.length > 0) {
+            soldRecords = aprData.Auctions
+              .filter(a => a.Price > 0)
+              .map(a => ({
+                price: a.Price,
+                date: a.Date,
+                house: a.Auctioneer,
+                saleName: a.SaleName,
+                isCAC: a.IsCAC,
+                url: a.AuctionLotUrl,
+                source: 'grade_level'
+              }))
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+          }
+        } catch (e) {
+          console.log('APR by grade fallback failed:', e.message);
+        }
+      }
+    }
 
     return NextResponse.json({
       certNo: data.CertNo,
