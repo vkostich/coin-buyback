@@ -6,7 +6,7 @@ async function pcgsFetch(path) {
   const res = await fetch(`${PCGS_BASE}${path}`, {
     headers: { Authorization: `bearer ${process.env.PCGS_API_TOKEN}` }
   });
-  console.log(`PCGS fetch ${path} status:`, res.status);
+  console.log(`PCGS fetch status ${res.status} for ${path}`);
   if (!res.ok) throw new Error(`PCGS API error: ${res.status}`);
   return res.json();
 }
@@ -45,19 +45,44 @@ export async function GET(request) {
       }))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    console.log('Cert-level soldRecords:', soldRecords.length, 'PCGSNo:', data.PCGSNo);
+    console.log('Cert-level soldRecords:', soldRecords.length);
 
+    // Fallback 1: APR by cert number
+    if (soldRecords.length === 0) {
+      try {
+        const aprCert = await pcgsFetch(`/coindetail/GetAPRByCertNo/${certNo}`);
+        console.log('APR by cert — Auctions:', aprCert.Auctions?.length);
+        if (aprCert.IsValidRequest && aprCert.Auctions?.length > 0) {
+          soldRecords = aprCert.Auctions
+            .filter(a => a.Price > 0)
+            .map(a => ({
+              price: a.Price,
+              date: a.Date,
+              house: a.Auctioneer,
+              saleName: a.SaleName,
+              isCAC: a.IsCAC,
+              url: a.AuctionLotUrl,
+              source: 'cert_apr'
+            }))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+      } catch (e) {
+        console.log('APR by cert failed:', e.message);
+      }
+    }
+
+    // Fallback 2: APR by grade
     if (soldRecords.length === 0 && data.PCGSNo) {
       const gradeNum = parseGradeNumber(data.Grade);
-      console.log('Trying APR by grade, PCGSNo:', data.PCGSNo, 'gradeNum:', gradeNum);
+      console.log('Trying APR by grade — PCGSNo:', data.PCGSNo, 'gradeNum:', gradeNum);
       if (gradeNum) {
         try {
-          const aprData = await pcgsFetch(
-            `/coindetail/GetAPRByCertNo/${certNo}`
+          const aprGrade = await pcgsFetch(
+            `/coindetail/GetAPRByGrade?PCGSNo=${data.PCGSNo}&GradeNo=${gradeNum}&PlusGrade=false`
           );
-          console.log('APR by cert response IsValid:', aprData.IsValidRequest, 'Auctions:', aprData.Auctions?.length);
-          if (aprData.IsValidRequest && aprData.Auctions?.length > 0) {
-            soldRecords = aprData.Auctions
+          console.log('APR by grade — Auctions:', aprGrade.Auctions?.length);
+          if (aprGrade.IsValidRequest && aprGrade.Auctions?.length > 0) {
+            soldRecords = aprGrade.Auctions
               .filter(a => a.Price > 0)
               .map(a => ({
                 price: a.Price,
@@ -66,37 +91,17 @@ export async function GET(request) {
                 saleName: a.SaleName,
                 isCAC: a.IsCAC,
                 url: a.AuctionLotUrl,
-                source: 'cert_apr'
+                source: 'grade_apr'
               }))
               .sort((a, b) => new Date(b.date) - new Date(a.date));
           }
         } catch (e) {
-          console.log('APR by cert failed, trying by grade:', e.message);
-          try {
-            const aprData = await pcgsFetch(
-              `/coindetail/GetAPRByGrade?PCGSNo=${data.PCGSNo}&GradeNo=${gradeNum}&PlusGrade=false`
-            );
-            console.log('APR by grade response IsValid:', aprData.IsValidRequest, 'Auctions:', aprData.Auctions?.length);
-            if (aprData.IsValidRequest && aprData.Auctions?.length > 0) {
-              soldRecords = aprData.Auctions
-                .filter(a => a.Price > 0)
-                .map(a => ({
-                  price: a.Price,
-                  date: a.Date,
-                  house: a.Auctioneer,
-                  saleName: a.SaleName,
-                  isCAC: a.IsCAC,
-                  url: a.AuctionLotUrl,
-                  source: 'grade_apr'
-                }))
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
-            }
-          } catch (e2) {
-            console.log('APR by grade also failed:', e2.message);
-          }
+          console.log('APR by grade failed:', e.message);
         }
       }
     }
+
+    console.log('Final soldRecords count:', soldRecords.length);
 
     return NextResponse.json({
       certNo: data.CertNo,
