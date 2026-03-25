@@ -283,7 +283,7 @@ export default function App() {
         body: JSON.stringify({
           type: "offer_accepted",
           to: sellerEmail,
-          sellerName, sellerEmail, cardInfo, psaData, offer,
+          sellerName, sellerEmail, cardInfo, pcgsData, offer,
           phrase: generatedPhrase,
           submissionId: saved.poNumber,
           shippingOption: offer?.shippingOptions?.[0]?.label,
