@@ -527,7 +527,6 @@ export default function App() {
                     </span>
                   </div>
                   <span style={{ fontSize:11, padding:"2px 10px", borderRadius:9999, background: offer.fmvSource==="auction_comps"?"#14532d":"#713f12", color: offer.fmvSource==="auction_comps"?"#86efac":"#fde68a" }}>{offer.fmvSource === "auction_comps" ? "High" : "Medium"} Confidence</span>
-                  <p style={{ margin:"10px 0 0", color:"#9ca3af", fontSize:12, lineHeight:1.6, textAlign:"left" }}>{offer.reasoning}</p>
                 </div>
                 <div style={cardBox}>
                   <p style={{ margin:"0 0 10px", color:"#9ca3af", fontSize:12, fontWeight:600 }}>Pricing Data</p>
