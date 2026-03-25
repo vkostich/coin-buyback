@@ -212,9 +212,9 @@ export default function App() {
       const card = await r.json();
       if (card.error === "mismatch") { setError("Warning: " + card.message); setLoading(false); setLoadingMsg(""); return; }
       if (card.error) throw new Error(card.error);
-      const hasGrade = card.psaData || (card.estimatedGrade && card.estimatedGrade.toLowerCase().includes("psa"));
+      const hasGrade = card.psaData || card.grade || card.coinName;
       if (!hasGrade) { setGradedError(true); setLoading(false); setLoadingMsg(""); return; }
-      if (card.psaData) setPsaData(card.psaData);
+      if (card.psaData) setPcgsData(card.psaData);
       if (card.extractedCert && !certNumber) setCertNumber(card.extractedCert);
       setCardInfo(card);
       setLoadingMsg("Fetching sold comps...");
@@ -234,7 +234,7 @@ export default function App() {
       const r = await fetch("/api/offer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardInfo, comps, psaData }),
+        body: JSON.stringify({ cardInfo, comps, pcgsData }),
       });
       const o = await r.json();
       if (o.error) throw new Error(o.error);
@@ -335,7 +335,7 @@ export default function App() {
 
   const reset = () => {
     setStep(1); setPreview(null); setImgBase64(null); setCardInfo(null);
-    setPsaData(null); setComps(null); setOffer(null); setError(null);
+    setPcgsData(null); setComps(null); setOffer(null); setError(null);
     setGradedError(false); setSellerFirstName(""); setSellerLastName(""); setSellerEmail(""); setPaypalEmail(""); setPaypalEmailConfirm(""); setCertNumber("");
     setPhrase(null); setOfferId(null); setSubmissionId(null); setVerifyResult(null);
     setVerifyPreview(null); setVerifyBase64(null);
@@ -360,12 +360,12 @@ export default function App() {
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:999, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
       <div style={{ background:"#fff", color:"#000", borderRadius:12, padding:24, maxWidth:400, width:"100%", textAlign:"center" }}>
         <div style={{ borderBottom:"3px solid #000", paddingBottom:12, marginBottom:12 }}>
-          <h2 style={{ margin:"0 0 2px", fontSize:22, fontWeight:900 }}>PSA BuyBack</h2>
+          <h2 style={{ margin:"0 0 2px", fontSize:22, fontWeight:900 }}>Coin BuyBack</h2>
           <p style={{ margin:0, fontSize:12, color:"#555" }}>Packing Slip &mdash; Include this with your card</p>
         </div>
         <BarcodeDisplay value={submissionId || "N/A"} />
         <div style={{ textAlign:"left", fontSize:13, borderTop:"1px solid #ddd", paddingTop:12, marginTop:4 }}>
-          {([["Submission #", submissionId],["Seller", sellerName],["Card", `${cardInfo?.name} ${cardInfo?.cardNumber || ""}`.trim()],["PSA Cert #", psaData?.certNumber || certNumber || "N/A"],["PSA Grade", psaData?.grade || cardInfo?.estimatedGrade],["Offer", `$${offer?.offerPrice}`]] as [string,string][]).map(([k,v]) => (
+          {([["Submission #", submissionId],["Seller", sellerName],["Card", `${cardInfo?.name} ${cardInfo?.cardNumber || ""}`.trim()],["PCGS Cert #", pcgsData?.certNo || certNumber || "N/A"],["PCGS Grade", pcgsData?.grade || cardInfo?.grade],["Offer", `$${offer?.offerPrice}`]] as [string,string][]).map(([k,v]) => (
             <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:"1px solid #eee" }}>
               <span style={{ color:"#555", fontWeight:600 }}>{k}:</span><span style={{ fontWeight:"bold" }}>{v}</span>
             </div>
@@ -396,7 +396,7 @@ export default function App() {
       <div style={{ background:"#000", borderBottom:"1px solid #1a0a2e", padding:"2px 16px", position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"center" }}>
         <img
           src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PSARetro-fotor-bg-remover-20260319222935.png"
-          alt="GPK BuyBack"
+          alt="Coin BuyBack"
           onClick={() => window.location.href="/"}
           style={{ height:240, objectFit:"contain", cursor:"pointer" }}
         />
@@ -463,20 +463,20 @@ export default function App() {
             {/* STEP 3 */}
             {step === 3 && cardInfo && (
               <>
-                <h2 style={{ margin:"0 0 16px", fontSize:20 }}>Card Identified</h2>
+                <h2 style={{ margin:"0 0 16px", fontSize:20 }}>Coin Identified</h2>
                 <div style={{ ...cardBox, border:"1px solid rgba(236,72,153,0.4)" }}>
                   <div style={{ display:"flex", gap:12 }}>
                     {preview && <img src={preview} alt="card" style={{ width:80, height:110, objectFit:"cover", borderRadius:8, flexShrink:0 }} />}
                     <div style={{ flex:1, minWidth:0 }}>
-                      <h3 style={{ margin:"0 0 6px", color:"#ec4899", fontSize:20 }}>{cardInfo.name}</h3>
-                      {psaData && !psaData.error && <div style={{ background:"#14532d", borderRadius:6, padding:"3px 8px", fontSize:11, color:"#86efac", display:"inline-flex", alignItems:"center", gap:4, marginBottom:8 }}>PSA Grade {psaData.grade} Verified</div>}
+                      <h3 style={{ margin:"0 0 6px", color:"#ec4899", fontSize:20 }}>{cardInfo.coinName || cardInfo.denomination} {cardInfo.year}</h3>
+                      {pcgsData && !pcgsData.error && <div style={{ background:"#14532d", borderRadius:6, padding:"3px 8px", fontSize:11, color:"#86efac", display:"inline-flex", alignItems:"center", gap:4, marginBottom:8 }}>PCGS Grade {pcgsData.grade} Verified</div>}
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 12px", fontSize:13 }}>
-                        {[["Series",cardInfo.series],["Year",cardInfo.year],["Card #",cardInfo.cardNumber],["Variant",cardInfo.variant],["Condition", psaData?.gradeDescription || cardInfo.condition],["PSA Grade", psaData?.grade || cardInfo.estimatedGrade]].map(([k,v])=>(
-                          <div key={k} style={{ display:"flex", gap:6 }}><span style={{ color:"#6b7280" }}>{k}</span><span style={{ color: k==="PSA Grade"?"#eab308":"#fff", fontWeight: k==="PSA Grade"?"bold":"normal" }}>{v}</span></div>
+                        {[["Year",cardInfo.year],["Denomination",cardInfo.denomination],["Mint Mark",cardInfo.mintMark||"None"],["Designation",cardInfo.designation||"—"],["Variety",cardInfo.variety||"—"],["PCGS Grade", pcgsData?.grade || cardInfo.grade]].map(([k,v])=>(
+                          <div key={k} style={{ display:"flex", gap:6 }}><span style={{ color:"#6b7280" }}>{k}</span><span style={{ color: k==="PCGS Grade"?"#eab308":"#fff", fontWeight: k==="PCGS Grade"?"bold":"normal" }}>{v}</span></div>
                         ))}
                         <div style={{ display:"flex", gap:6, gridColumn:"1/-1" }}>
-                          <span style={{ color:"#6b7280" }}>Finish</span>
-                          <span style={{ color: cardInfo.finish==="Glossy"?"#a78bfa":"#9ca3af", fontWeight:"bold" }}>{cardInfo.finish || "Matte"} <span style={{ fontSize:10, color:"#4b5563", fontWeight:"normal" }}>({cardInfo.finishSource || "Visual"})</span></span>
+                          <span style={{ color:"#6b7280" }}>Label</span>
+                          <span style={{ color:"#a78bfa", fontWeight:"bold" }}>{cardInfo.labelType || "Blue"} <span style={{ fontSize:10, color:"#4b5563", fontWeight:"normal" }}>({cardInfo.gradingService || "PCGS"})</span></span>
                         </div>
                       </div>
                     </div>
@@ -515,7 +515,7 @@ export default function App() {
                 <h2 style={{ margin:"0 0 16px", fontSize:20 }}>Your Offer</h2>
                 <div style={{ ...cardBox, border:"1px solid rgba(234,179,8,0.4)", textAlign:"center" }}>
                   <p style={{ margin:"0 0 2px", color:"#9ca3af", fontSize:13 }}>{"We'd like to buy your"}</p>
-                  <p style={{ margin:"0 0 6px", color:"#ec4899", fontWeight:900, fontSize:17 }}>{cardInfo?.name} {cardInfo?.cardNumber}</p>
+                  <p style={{ margin:"0 0 6px", color:"#ec4899", fontWeight:900, fontSize:17 }}>{cardInfo?.coinName || cardInfo?.denomination} {cardInfo?.year}</p>
                   <p style={{ margin:"0 0 6px", fontSize:52, fontWeight:900, color:"#eab308", lineHeight:1 }}>${offer.offerPrice}</p>
                   <p style={{ margin:"0 0 8px", color:"#6b7280", fontSize:12 }}>Fair Market Value: <span style={{ color:"#9ca3af" }}>${offer.fairMarketValue}</span></p>
                   <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:8 }}>
@@ -572,7 +572,7 @@ export default function App() {
                     <input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)}
                       style={{ marginTop:3, width:18, height:18, cursor:"pointer", accentColor:"#ec4899" }} />
                     <span style={{ color:"#c7d2fe", fontSize:13, lineHeight:1.6 }}>
-                      I agree to ship this card within <strong style={{ color:"#fff" }}>5 business days</strong> of receiving my upfront payment. I understand that failure to ship within this timeframe may result in my offer being rescinded and upfront payment being recovered via PayPal dispute.
+                      I agree to ship this coin within <strong style={{ color:"#fff" }}>5 business days</strong> of receiving my upfront payment. I understand that failure to ship within this timeframe may result in my offer being rescinded and upfront payment being recovered via PayPal dispute.
                     </span>
                   </label>
                 </div>
@@ -587,12 +587,12 @@ export default function App() {
             {/* STEP 5 */}
             {step === 5 && phrase && (
               <>
-                <h2 style={{ margin:"0 0 6px", fontSize:20 }}>Verify Your Card</h2>
-                <p style={{ color:"#6b7280", fontSize:13, margin:"0 0 16px" }}>To protect both parties, we need to verify you physically have this card.</p>
+                <h2 style={{ margin:"0 0 6px", fontSize:20 }}>Verify Your Coin</h2>
+                <p style={{ color:"#6b7280", fontSize:13, margin:"0 0 16px" }}>To protect both parties, we need to verify you physically have this coin.</p>
                 <div style={{ background:"#1e1b4b", border:"2px dashed #6366f1", borderRadius:12, padding:20, textAlign:"center", marginBottom:16 }}>
                   <p style={{ margin:"0 0 8px", color:"#a5b4fc", fontSize:13 }}>Write this phrase on paper &mdash; must be handwritten:</p>
                   <p style={{ margin:"0 0 8px", fontSize:26, fontWeight:900, color:"#fff", letterSpacing:4, fontFamily:"monospace" }}>{phrase}</p>
-                  <p style={{ margin:0, color:"#6b7280", fontSize:12 }}>The PHRASE and the ENTIRE slab must be visible from top to bottom including the PSA label and the full card image. The PSA cert number must be clearly readable.</p>
+                  <p style={{ margin:0, color:"#6b7280", fontSize:12 }}>The PHRASE and the ENTIRE slab must be visible from top to bottom including the PCGS label. The PCGS cert number must be clearly readable.</p>
                 </div>
                 <div style={{ ...cardBox }}>
                   <p style={{ margin:"0 0 10px", color:"#9ca3af", fontSize:13, fontWeight:600 }}>Upload Verification Photo</p>
@@ -617,12 +617,12 @@ export default function App() {
                   <>
                     <div style={{ fontSize:56, marginBottom:12 }}>&#127881;</div>
                     <h2 style={{ margin:"0 0 8px", color:"#4ade80" }}>Verified!</h2>
-                    <p style={{ color:"#9ca3af", marginBottom:20, fontSize:14 }}>Your card has been verified. Here is a summary of your submission.</p>
+                    <p style={{ color:"#9ca3af", marginBottom:20, fontSize:14 }}>Your coin has been verified. Here is a summary of your submission.</p>
                     <div style={{ ...cardBox, textAlign:"left", border:"1px solid rgba(74,222,128,0.3)" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Seller</span><span style={{ color:"#fff" }}>{sellerName}</span></div>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Card</span><span style={{ color:"#ec4899", fontWeight:600 }}>{cardInfo?.name} {cardInfo?.cardNumber}</span></div>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>PSA Cert #</span><span style={{ color:"#fff", fontFamily:"monospace" }}>{psaData?.certNumber || certNumber || "N/A"}</span></div>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>PSA Grade</span><span style={{ color:"#eab308", fontWeight:"bold" }}>{psaData?.grade || cardInfo?.estimatedGrade}</span></div>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Coin</span><span style={{ color:"#ec4899", fontWeight:600 }}>{cardInfo?.coinName || cardInfo?.denomination} {cardInfo?.year}</span></div>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>PCGS Cert #</span><span style={{ color:"#fff", fontFamily:"monospace" }}>{pcgsData?.certNo || certNumber || "N/A"}</span></div>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>PCGS Grade</span><span style={{ color:"#eab308", fontWeight:"bold" }}>{pcgsData?.grade || cardInfo?.grade}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Submission #</span><span style={{ color:"#fff", fontFamily:"monospace" }}>{submissionId}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Total Offer</span><span style={{ color:"#eab308", fontWeight:900 }}>${offer?.offerPrice}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Upfront Payment</span><span style={{ color:"#4ade80", fontWeight:900 }}>${offer?.offerPrice < 100 ? (offer?.offerPrice * 0.5).toFixed(2) : (offer?.offerPrice * 0.25).toFixed(2)}</span></div>
@@ -638,7 +638,7 @@ export default function App() {
                     <div style={{ ...cardBox, background:"#0a2a1a", border:"1px solid #166534" }}>
                       <p style={{ margin:"0 0 8px", color:"#4ade80", fontSize:13, fontWeight:600 }}>Next Steps</p>
                       <p style={{ margin:"0 0 6px", color:"#86efac", fontSize:13 }}>1. Watch for your upfront PayPal payment &mdash; arriving soon.</p>
-                      <p style={{ margin:"0 0 6px", color:"#86efac", fontSize:13 }}>2. Once received, package your card securely and ship to us.</p>
+                      <p style={{ margin:"0 0 6px", color:"#86efac", fontSize:13 }}>2. Once received, package your coin securely and ship to us.</p>
                       <p style={{ margin:0, color:"#86efac", fontSize:13 }}>3. Enter your tracking number below so we can monitor delivery.</p>
                     </div>
                     <div style={{ ...cardBox, background:"#1e1b4b", border:"1px solid #6366f1" }}>
@@ -647,19 +647,19 @@ export default function App() {
                       <a href={`/track/${submissionId}`} style={{ display:"block", textAlign:"center", padding:"12px 0", borderRadius:10, background:"linear-gradient(to right,#6366f1,#a855f7)", color:"#fff", fontWeight:"bold", fontSize:14, textDecoration:"none" }}>Enter Tracking Number &rarr;</a>
                     </div>
                     <div style={{ ...cardBox, border:"1px solid rgba(99,102,241,0.4)" }}>
-                      <p style={{ margin:"0 0 8px", color:"#a5b4fc", fontSize:13, fontWeight:700 }}>Ship Your Card To:</p>
-                      <p style={{ margin:"0 0 4px", color:"#fff", fontSize:15, fontWeight:700 }}>PSA BuyBack</p>
+                      <p style={{ margin:"0 0 8px", color:"#a5b4fc", fontSize:13, fontWeight:700 }}>Ship Your Coin To:</p>
+                      <p style={{ margin:"0 0 4px", color:"#fff", fontSize:15, fontWeight:700 }}>Coin BuyBack</p>
                       <p style={{ margin:"0 0 4px", color:"#c7d2fe", fontSize:14 }}>XXXX Buyback Lane</p>
                       <p style={{ margin:"0 0 8px", color:"#c7d2fe", fontSize:14 }}>City, ST 00000</p>
                       <p style={{ margin:0, color:"#f97316", fontSize:12, fontWeight:600 }}>Write <strong>{submissionId}</strong> on the outside of your package</p>
                     </div>
                     <div style={{ ...cardBox, background:"#0a2a1a", border:"1px solid #166534" }}>
                       <p style={{ margin:"0 0 8px", color:"#4ade80", fontSize:13, fontWeight:600 }}>Packing Slip</p>
-                      <p style={{ margin:"0 0 10px", color:"#86efac", fontSize:13 }}>Include a packing slip in your package so we can identify your card instantly.</p>
+                      <p style={{ margin:"0 0 10px", color:"#86efac", fontSize:13 }}>Include a packing slip in your package so we can identify your coin instantly.</p>
                       <button onClick={() => setShowPackingSlip(true)} style={{ ...btn("linear-gradient(to right,#059669,#0d9488)", false), marginTop:0 }}>View / Print Packing Slip</button>
                     </div>
                     <p style={{ color:"#6b7280", fontSize:13, textAlign:"center" }}>Questions? Email us at <strong style={{ color:"#fff" }}>vkostich@hotmail.com</strong></p>
-                    <button onClick={reset} style={btn("#1f2937", false)}>Submit Another Card</button>
+                    <button onClick={reset} style={btn("#1f2937", false)}>Submit Another Coin</button>
                   </>
                 ) : (
                   <>
@@ -684,8 +684,8 @@ export default function App() {
         {/* BUY TAB */}
         {tab === 1 && (
           <div style={inner}>
-            <h2 style={{ margin:"0 0 6px", fontSize:20 }}>Buy Cards</h2>
-            <p style={{ color:"#6b7280", fontSize:13, margin:"0 0 20px" }}>Browse our current inventory of PSA graded Garbage Pail Kids cards.</p>
+            <h2 style={{ margin:"0 0 6px", fontSize:20 }}>Buy Coins</h2>
+            <p style={{ color:"#6b7280", fontSize:13, margin:"0 0 20px" }}>Browse our current inventory of PCGS graded coins.</p>
             <div style={{ ...cardBox, textAlign:"center", padding:40 }}>
               <div style={{ fontSize:48, marginBottom:12 }}>&#127183;</div>
               <p style={{ color:"#9ca3af", fontSize:14, margin:0 }}>Inventory listings coming soon.</p>
