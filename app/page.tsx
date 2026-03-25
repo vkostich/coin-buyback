@@ -526,7 +526,7 @@ export default function App() {
                       {"50% upfront \u00b7 50% on receipt"}
                     </span>
                   </div>
-                  <span style={{ fontSize:11, padding:"2px 10px", borderRadius:9999, background: offer.confidenceLevel==="High"?"#14532d":offer.confidenceLevel==="Medium"?"#713f12":"#1f2937", color: offer.confidenceLevel==="High"?"#86efac":offer.confidenceLevel==="Medium"?"#fde68a":"#9ca3af" }}>{offer.fmvSource === "auction_comps" ? "High" : "Medium"} Confidence</span>
+                  <span style={{ fontSize:11, padding:"2px 10px", borderRadius:9999, background: offer.fmvSource==="auction_comps"?"#14532d":"#713f12", color: offer.fmvSource==="auction_comps"?"#86efac":"#fde68a" }}>{offer.fmvSource === "auction_comps" ? "High" : "Medium"} Confidence</span>
                   <p style={{ margin:"10px 0 0", color:"#9ca3af", fontSize:12, lineHeight:1.6, textAlign:"left" }}>{offer.reasoning}</p>
                 </div>
                 <div style={cardBox}>
@@ -638,7 +638,7 @@ export default function App() {
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Submission #</span><span style={{ color:"#fff", fontFamily:"monospace" }}>{submissionId}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Total Offer</span><span style={{ color:"#eab308", fontWeight:900 }}>${offer?.offerPrice}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Upfront Payment</span><span style={{ color:"#4ade80", fontWeight:900 }}>${offer?.offer ? (offer.offer * 0.5).toFixed(2) : "—"}</span></div>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Remaining Balance</span><span style={{ color:"#fff" }}>${offer?.offerPrice < 100 ? (offer?.offerPrice * 0.5).toFixed(2) : (offer?.offerPrice * 0.75).toFixed(2)}</span></div>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Remaining Balance</span><span style={{ color:"#fff" }}>${offer?.offer ? (offer.offer * 0.5).toFixed(2) : "—"}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0" }}><span style={{ color:"#6b7280" }}>Payment Method</span><span style={{ color:"#fff" }}>PayPal G&amp;S</span></div>
                     </div>
                     <div style={{ ...cardBox, background:"#1e1b4b", border:"1px solid #6366f1" }}>
