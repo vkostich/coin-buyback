@@ -12,25 +12,25 @@ export async function POST(request) {
       console.log("No cert provided — attempting to extract from image...");
 
       const extractPrompts = [
-        `This image shows a PSA graded trading card in a plastic slab. 
-Look carefully at the PSA label on the slab — it contains a certification number.
-PSA cert numbers are 7-9 digits long (older slabs 7-8 digits, newer slabs 9 digits).
-PSA labels typically show "CERT #" followed by the number.
+        `This image shows a PCGS graded coin in a plastic slab.
+Look carefully at the PCGS label on the slab — it contains a certification number.
+PCGS cert numbers are 7-8 digits long.
+PCGS labels typically show the cert number near the barcode.
 Return ONLY the digits of the cert number. If not found, return NULL.`,
 
-        `Examine this image very carefully for a PSA grading slab.
-Look at ALL labels, text, barcodes, and fine print anywhere on the PSA case.
+        `Examine this image very carefully for a PCGS grading slab.
+Look at ALL labels, text, barcodes, and fine print anywhere on the PCGS case.
 The certification number may appear as:
-- 7, 8, or 9 consecutive digits anywhere on the label
+- 7 or 8 consecutive digits anywhere on the label
 - After the text "CERT", "CERT #", "CERT NO", "CERTIFICATION"
-- Below a barcode on the PSA label
+- Below a barcode on the PCGS label
 - On the bottom or top label of the slab
-Return ONLY the cert number digits (7-9 digits). If truly not found, return NULL.`,
+Return ONLY the cert number digits (7-8 digits). If truly not found, return NULL.`,
 
-        `This is a PSA graded trading card slab. I need you to read the small text on the label.
-The PSA label is usually red/white at the top or bottom of the slab.
-It contains: card name, grade (like PSA 10), year, set name, and a CERT number.
-The cert number is 7-9 digits — look for it carefully.
+        `This is a PCGS graded coin slab. I need you to read the small text on the label.
+The PCGS label is usually blue at the top or bottom of the slab.
+It contains: coin name, grade (like MS65), year, denomination, and a CERT number.
+The cert number is 7-8 digits — look for it carefully.
 Even if the image is slightly blurry, try to read the numbers.
 Return ONLY the cert number digits. Return NULL only if completely unreadable.`,
       ];
@@ -72,39 +72,37 @@ Return ONLY the cert number digits. Return NULL only if completely unreadable.`,
 
     let psaData = null;
     if (certNumber) {
-      console.log("Querying PSA for cert:", certNumber);
+      console.log("Querying PCGS for cert:", certNumber);
       try {
-        const psaRes = await fetch(
-          `https://api.psacard.com/publicapi/cert/GetByCertNumber/${certNumber}`,
-          { headers: { Authorization: `bearer ${process.env.PSA_API_TOKEN}` } }
+        const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://coin-buyback.vercel.app';
+        const pcgsRes = await fetch(
+          `${baseUrl}/api/pcgs?certNo=${certNumber}`
         );
-        if (psaRes.ok) {
-          const psaJson = await psaRes.json();
-          const cert = psaJson.PSACert;
-          if (cert) {
+        if (pcgsRes.ok) {
+          const pcgsJson = await pcgsRes.json();
+          if (pcgsJson.isValidRequest) {
             psaData = {
-              certNumber: cert.CertNumber,
-              cardName: cert.Subject,
-              year: cert.Year,
-              brand: cert.Brand,
-              series: cert.CardSet,
-              cardNumber: cert.CardNumber,
-              variety: cert.Variety,
-              grade: cert.CardGrade,
-              gradeDescription: cert.GradeDescription,
-              populationHigher: cert.PopulationHigher,
-              totalPopulation: cert.TotalPopulation,
+              certNo: pcgsJson.certNo,
+              coinName: pcgsJson.coinName,
+              year: pcgsJson.year,
+              denomination: pcgsJson.denomination,
+              mintMark: pcgsJson.mintMark,
+              grade: pcgsJson.grade,
+              designation: pcgsJson.designation,
+              variety: pcgsJson.variety,
+              priceGuide: pcgsJson.priceGuide,
+              population: pcgsJson.population,
+              populationHigher: pcgsJson.populationHigher,
+              soldRecords: pcgsJson.soldRecords,
             };
-            console.log("=== PSA DATA ===");
-            console.log("Card Name:", psaData.cardName);
+            console.log("=== PCGS DATA ===");
+            console.log("Coin Name:", psaData.coinName);
             console.log("Grade:", psaData.grade);
-            console.log("Variety:", psaData.variety);
-            console.log("Full PSACert:", JSON.stringify(cert, null, 2));
-            console.log("===============");
+            console.log("================");
           }
         }
       } catch (e) {
-        console.log("PSA query failed:", e.message);
+        console.log("PCGS query failed:", e.message);
       }
     }
 
@@ -119,7 +117,7 @@ Return ONLY the cert number digits. Return NULL only if completely unreadable.`,
             max_tokens: 200,
             messages: [{ role: "user", content: [
               { type: "image", source: { type: "base64", media_type: mimeType, data: imageBase64 } },
-              { type: "text", text: `PSA cert #${psaData.certNumber} is for: "${psaData.cardName}", Year: ${psaData.year}, Set: ${psaData.series}, Card #: ${psaData.cardNumber}, Grade: ${psaData.grade}. Does the card in this image match? Return ONLY valid JSON: { "match": true or false, "confidence": "High/Medium/Low", "reason": "brief explanation" }` }
+              { type: "text", text: `PCGS cert #${psaData.certNo} is for: "${psaData.coinName}", Year: ${psaData.year}, Denomination: ${psaData.denomination}, Grade: ${psaData.grade}. Does the coin in this image match? Return ONLY valid JSON: { "match": true or false, "confidence": "High/Medium/Low", "reason": "brief explanation" }` }
             ]}]
           }),
         });
@@ -130,9 +128,9 @@ Return ONLY the cert number digits. Return NULL only if completely unreadable.`,
         if (!matchResult.match && matchResult.confidence !== "Low") {
           return Response.json({
             error: "mismatch",
-            message: `The photo does not appear to match cert #${psaData.certNumber} (${psaData.cardName}). Please check that you've uploaded the correct card image.`,
-            psaCert: psaData.certNumber,
-            psaCard: psaData.cardName,
+            message: `The photo does not appear to match cert #${psaData.certNo} (${psaData.coinName}). Please check that you've uploaded the correct coin image.`,
+            psaCert: psaData.certNo,
+            psaCard: psaData.coinName,
             reason: matchResult.reason,
           }, { status: 422 });
         }
@@ -141,10 +139,8 @@ Return ONLY the cert number digits. Return NULL only if completely unreadable.`,
       }
     }
 
-    const varietyStr = (psaData?.variety || psaData?.gradeDescription || "").toLowerCase();
-    const isGlossy = varietyStr.includes("gloss") || varietyStr.includes("os-g") || varietyStr.includes("glossy");
+    const varietyStr = (psaData?.variety || psaData?.designation || "").toLowerCase();
     console.log("Variety string:", varietyStr);
-    console.log("Is glossy (from PSA):", isGlossy);
 
     const content = [];
     if (imageBase64) {
@@ -164,7 +160,7 @@ ${psaData ? `PCGS CERT DATA (treat as authoritative):
 - Variety: ${psaData.variety || ""}
 - PCGS Cert: ${psaData.certNo}
 
-Set estimatedGrade to match PCGS grade exactly (e.g. "MS65", "PR70DCAM").` : certNumber ? `PSA Cert Number: ${certNumber}` : "No PSA data available."}
+Set estimatedGrade to match PCGS grade exactly (e.g. "MS65", "PR70DCAM").` : certNumber ? `PCGS Cert Number: ${certNumber}` : "No PCGS data available."}
 
 SLAB VERIFICATION:
 Examine the slab carefully:
