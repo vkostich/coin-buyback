@@ -520,20 +520,29 @@ export default function App() {
                   <p style={{ margin:"0 0 2px", color:"#9ca3af", fontSize:13 }}>{"We'd like to buy your"}</p>
                   <p style={{ margin:"0 0 6px", color:"#ec4899", fontWeight:900, fontSize:17 }}>{cardInfo?.coinName || cardInfo?.denomination} {cardInfo?.year}</p>
                   <p style={{ margin:"0 0 6px", fontSize:52, fontWeight:900, color:"#eab308", lineHeight:1 }}>${offer.offer}</p>
-                  <p style={{ margin:"0 0 8px", color:"#6b7280", fontSize:12 }}>Fair Market Value: <span style={{ color:"#9ca3af" }}>${offer.fairMarketValue}</span></p>
+                  <p style={{ margin:"0 0 8px", color:"#6b7280", fontSize:12 }}>Fair Market Value: <span style={{ color:"#9ca3af" }}>${offer.fmv}</span>
                   <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:8 }}>
                     <span style={{ fontSize:11, padding:"2px 10px", borderRadius:9999, background:"#1e1b4b", color:"#a5b4fc" }}>
-                      {offer.offerPrice < 100 ? "50% upfront \u00b7 50% on receipt" : "25% upfront \u00b7 75% on receipt"}
+                      {"50% upfront \u00b7 50% on receipt"}
                     </span>
                   </div>
-                  <span style={{ fontSize:11, padding:"2px 10px", borderRadius:9999, background: offer.confidenceLevel==="High"?"#14532d":offer.confidenceLevel==="Medium"?"#713f12":"#1f2937", color: offer.confidenceLevel==="High"?"#86efac":offer.confidenceLevel==="Medium"?"#fde68a":"#9ca3af" }}>{offer.confidenceLevel} Confidence</span>
+                  <span style={{ fontSize:11, padding:"2px 10px", borderRadius:9999, background: offer.confidenceLevel==="High"?"#14532d":offer.confidenceLevel==="Medium"?"#713f12":"#1f2937", color: offer.confidenceLevel==="High"?"#86efac":offer.confidenceLevel==="Medium"?"#fde68a":"#9ca3af" }}>{offer.fmvSource === "auction_comps" ? "High" : "Medium"} Confidence</span>
                   <p style={{ margin:"10px 0 0", color:"#9ca3af", fontSize:12, lineHeight:1.6, textAlign:"left" }}>{offer.reasoning}</p>
                 </div>
                 <div style={cardBox}>
-                  <p style={{ margin:"0 0 10px", color:"#9ca3af", fontSize:12, fontWeight:600 }}>Pricing Factors</p>
-                  <ScoreBar label="Sales Velocity" val={offer.velocityScore} />
-                  <ScoreBar label="Scarcity" val={offer.scarcityScore} />
-                  <ScoreBar label="Desirability" val={offer.desirabilityScore} />
+                  <p style={{ margin:"0 0 10px", color:"#9ca3af", fontSize:12, fontWeight:600 }}>Pricing Data</p>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, padding:"5px 0", borderBottom:"1px solid #1f2937" }}>
+                    <span style={{ color:"#9ca3af" }}>Source</span>
+                    <span style={{ color:"#fff" }}>{offer.fmvSource === "auction_comps" ? "Auction Comps" : "PCGS Price Guide"}</span>
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, padding:"5px 0", borderBottom:"1px solid #1f2937" }}>
+                    <span style={{ color:"#9ca3af" }}>Comps Used</span>
+                    <span style={{ color:"#fff" }}>{offer.compsUsed || 0}</span>
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, padding:"5px 0" }}>
+                    <span style={{ color:"#9ca3af" }}>Price Guide</span>
+                    <span style={{ color:"#fff" }}>{offer.priceGuideReference ? `$${offer.priceGuideReference}` : "N/A"}</span>
+                  </div>
                 </div>
                 
                 <div style={{ ...cardBox, border:"1px solid rgba(236,72,153,0.3)" }}>
@@ -628,7 +637,7 @@ export default function App() {
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>PCGS Grade</span><span style={{ color:"#eab308", fontWeight:"bold" }}>{pcgsData?.grade || cardInfo?.grade}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Submission #</span><span style={{ color:"#fff", fontFamily:"monospace" }}>{submissionId}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Total Offer</span><span style={{ color:"#eab308", fontWeight:900 }}>${offer?.offerPrice}</span></div>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Upfront Payment</span><span style={{ color:"#4ade80", fontWeight:900 }}>${offer?.offerPrice < 100 ? (offer?.offerPrice * 0.5).toFixed(2) : (offer?.offerPrice * 0.25).toFixed(2)}</span></div>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Upfront Payment</span><span style={{ color:"#4ade80", fontWeight:900 }}>${offer?.offer ? (offer.offer * 0.5).toFixed(2) : "—"}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0", borderBottom:"1px solid #1f2937" }}><span style={{ color:"#6b7280" }}>Remaining Balance</span><span style={{ color:"#fff" }}>${offer?.offerPrice < 100 ? (offer?.offerPrice * 0.5).toFixed(2) : (offer?.offerPrice * 0.75).toFixed(2)}</span></div>
                       <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, padding:"7px 0" }}><span style={{ color:"#6b7280" }}>Payment Method</span><span style={{ color:"#fff" }}>PayPal G&amp;S</span></div>
                     </div>
