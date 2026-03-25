@@ -520,7 +520,7 @@ export default function App() {
                   <p style={{ margin:"0 0 2px", color:"#9ca3af", fontSize:13 }}>{"We'd like to buy your"}</p>
                   <p style={{ margin:"0 0 6px", color:"#ec4899", fontWeight:900, fontSize:17 }}>{cardInfo?.coinName || cardInfo?.denomination} {cardInfo?.year}</p>
                   <p style={{ margin:"0 0 6px", fontSize:52, fontWeight:900, color:"#eab308", lineHeight:1 }}>${offer.offer}</p>
-                  <p style={{ margin:"0 0 8px", color:"#6b7280", fontSize:12 }}>Fair Market Value: <span style={{ color:"#9ca3af" }}>${offer.fmv}</span>
+                  <p style={{ margin:"0 0 8px", color:"#6b7280", fontSize:12 }}>Fair Market Value: <span style={{ color:"#9ca3af" }}>${offer.fmv}</span></p>
                   <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:8 }}>
                     <span style={{ fontSize:11, padding:"2px 10px", borderRadius:9999, background:"#1e1b4b", color:"#a5b4fc" }}>
                       {"50% upfront \u00b7 50% on receipt"}
