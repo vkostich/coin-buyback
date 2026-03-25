@@ -220,8 +220,8 @@ export default function App() {
       if (card.soldRecords?.length > 0) {
         const avg = Math.round(card.soldRecords.slice(0, 5).reduce((s: number, r: any) => s + r.price, 0) / Math.min(card.soldRecords.length, 5));
         setComps({
-          comps: card.soldRecords.slice(0, 5).map(r => ({ date: r.date, platform: r.house, price: r.price })),
-          stats: { average: avg, high: Math.max(...card.soldRecords.slice(0,5).map(r => r.price)), low: Math.min(...card.soldRecords.slice(0,5).map(r => r.price)) }
+          comps: card.soldRecords.slice(0, 5).map((r: any) => ({ date: r.date, platform: r.house, price: r.price })),
+          stats: { average: avg, high: Math.max(...card.soldRecords.slice(0,5).map((r: any) => r.price)), low: Math.min(...card.soldRecords.slice(0,5).map((r: any) => r.price)) }
         });
       }
       setStep(3);
