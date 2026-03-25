@@ -19,43 +19,42 @@ export async function GET(request) {
   }
 
   try {
-    const [coinData, auctionData] = await Promise.all([
-      pcgsFetch(`/coinFacts/GetCoinFactsByCertNo/${certNo}`),
-      pcgsFetch(`/auctionprices/GetAuctionResultsByCertNo/${certNo}`)
-    ]);
+    const data = await pcgsFetch(
+      `/coindetail/GetCoinFactsByCertNo/${certNo}?retrieveAllData=true`
+    );
 
-    if (!coinData.IsValidRequest || coinData.ServerMessage === 'No data found') {
+    if (!data.IsValidRequest || data.ServerMessage === 'No data found') {
       return NextResponse.json({ error: 'Cert not found' }, { status: 404 });
     }
 
-    const auctions = Array.isArray(auctionData)
-      ? auctionData
-      : auctionData?.Results || auctionData?.AuctionResults || [];
-
-    const soldRecords = auctions
-      .filter(a => a.SalePrice || a.Price || a.RealisedPrice)
+    const soldRecords = (data.AuctionList || [])
+      .filter(a => a.Price > 0)
       .map(a => ({
-        price: parseFloat(a.SalePrice || a.Price || a.RealisedPrice || 0),
-        date: a.SaleDate || a.Date || a.AuctionDate || null,
-        house: a.AuctionHouse || a.Firm || a.AuctionFirm || 'Unknown'
+        price: a.Price,
+        date: a.Date,
+        house: a.Auctioneer,
+        saleName: a.SaleName,
+        isCAC: a.IsCAC,
+        url: a.AuctionLotUrl
       }))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return NextResponse.json({
-      certNo: coinData.CertNo,
-      coinName: coinData.CoinName,
-      year: coinData.Year,
-      denomination: coinData.Denomination,
-      mintMark: coinData.MintMark,
-      grade: coinData.Grade,
-      designation: coinData.Designation,
-      variety: coinData.Variety,
-      pcgsNumber: coinData.PCGSNo,
-      priceGuide: coinData.PriceGuideValue,
-      population: coinData.Population,
-      populationHigher: coinData.PopulationHigher,
-      imageObverse: coinData.IssueImageFront,
-      imageReverse: coinData.IssueImageBack,
+      certNo: data.CertNo,
+      coinName: data.Name,
+      year: data.Year,
+      denomination: data.Denomination,
+      mintMark: data.MintMark,
+      grade: data.Grade,
+      designation: data.Designation,
+      variety: data.MajorVariety || data.MinorVariety || data.DieVariety,
+      pcgsNumber: data.PCGSNo,
+      priceGuide: data.PriceGuideValue,
+      population: data.Population,
+      populationHigher: data.PopHigher,
+      seriesName: data.SeriesName,
+      imageObverse: data.Images?.[0]?.Fullsize,
+      imageReverse: data.Images?.[1]?.Fullsize,
       soldRecords,
       isValidRequest: true
     });
