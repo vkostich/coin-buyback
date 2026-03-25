@@ -201,9 +201,9 @@ Analyze this card and return ONLY valid JSON with no markdown or backticks:
     const clean = text.replace(/```json|```/g, "").trim();
     const cardInfo = JSON.parse(clean);
 
-    console.log("Final finish:", cardInfo.finish, "source:", cardInfo.finishSource);
+    console.log("Coin identified:", cardInfo.coinName, "Grade:", cardInfo.grade);
 
-    return Response.json({ ...cardInfo, psaData: psaData || null, extractedCert: certNumber || null });
+    return Response.json({ ...cardInfo, psaData: psaData || null, extractedCert: certNumber || null, soldRecords: psaData?.soldRecords || [], priceGuide: psaData?.priceGuide || null });
 
   } catch (err) {
     console.error("IDENTIFY ERROR:", err);

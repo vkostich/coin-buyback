@@ -217,10 +217,13 @@ export default function App() {
       if (card.psaData) setPcgsData(card.psaData);
       if (card.extractedCert && !certNumber) setCertNumber(card.extractedCert);
       setCardInfo(card);
-      setLoadingMsg("Fetching sold comps...");
-      const cr = await fetch(`/api/comps?card=${encodeURIComponent(card.name)}&grade=${encodeURIComponent(card.estimatedGrade || "")}&year=${card.year || ""}`);
-      const compData = await cr.json();
-      setComps(compData);
+      if (card.soldRecords?.length > 0) {
+        const avg = Math.round(card.soldRecords.slice(0, 5).reduce((s, r) => s + r.price, 0) / Math.min(card.soldRecords.length, 5));
+        setComps({
+          comps: card.soldRecords.slice(0, 5).map(r => ({ date: r.date, platform: r.house, price: r.price })),
+          stats: { average: avg, high: Math.max(...card.soldRecords.slice(0,5).map(r => r.price)), low: Math.min(...card.soldRecords.slice(0,5).map(r => r.price)) }
+        });
+      }
       setStep(3);
     } catch (err) {
       setError("Could not identify card. Please try a clearer image.");
@@ -234,7 +237,7 @@ export default function App() {
       const r = await fetch("/api/offer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardInfo, comps, pcgsData }),
+        body: JSON.stringify({ grade: cardInfo?.grade, priceGuide: cardInfo?.priceGuide, soldRecords: cardInfo?.soldRecords || [] }),
       });
       const o = await r.json();
       if (o.error) throw new Error(o.error);
