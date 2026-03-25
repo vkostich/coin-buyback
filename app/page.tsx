@@ -250,7 +250,7 @@ export default function App() {
       const res = await fetch("/api/save-offer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sellerName, sellerEmail, paypalEmail, cardInfo, psaData, offer, shippingOption: offer?.shippingOptions?.[0]?.label || "USPS First Class" }),
+        body: JSON.stringify({ sellerName, sellerEmail, paypalEmail, cardInfo, pcgsData, offer, shippingOption: offer?.shippingOptions?.[0]?.label || "USPS First Class" }),
       });
       const saved = await res.json();
         if (!res.ok) {
