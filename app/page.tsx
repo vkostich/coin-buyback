@@ -48,7 +48,7 @@ function UploadZone({ onFile, preview, label }: { onFile: (f: File | null) => vo
             style={{ border:`2px dashed ${drag?"#ec4899":"#4b5563"}`, borderRadius:12, padding:"24px 16px", textAlign:"center", cursor:"pointer", background:drag?"rgba(236,72,153,0.1)":"transparent", marginBottom:10 }}
           >
             <img
-              src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PSARetro-fotor-bg-remover-20260319222935.png"
+              src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PCGS%20BuyBack%20Final.png"
               alt="upload"
               style={{ width:60, height:60, objectFit:"contain", display:"block", margin:"0 auto 8px", pointerEvents:"none" }}
             />
@@ -395,7 +395,7 @@ export default function App() {
       {/* Header */}
       <div style={{ background:"#000", borderBottom:"1px solid #1a0a2e", padding:"2px 16px", position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"center" }}>
         <img
-          src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PSARetro-fotor-bg-remover-20260319222935.png"
+          src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PCGS%20BuyBack%20Final.png"
           alt="Coin BuyBack"
           onClick={() => window.location.href="/"}
           style={{ height:240, objectFit:"contain", cursor:"pointer" }}
