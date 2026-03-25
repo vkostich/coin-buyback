@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 const TABS = ["Sell", "Buy"];
-const SHIP_TO = { name: "GPK BuyBack", address: "XXXX Buyback Lane", city: "City, ST 00000" };
+const SHIP_TO = { name: "Coin BuyBack", address: "XXXX Buyback Lane", city: "City, ST 00000" };
 
 function Spinner() {
   return <div style={{ display:"inline-block", width:20, height:20, border:"2px solid #ec4899", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.7s linear infinite" }} />;
@@ -48,7 +48,7 @@ function UploadZone({ onFile, preview, label }: { onFile: (f: File | null) => vo
             style={{ border:`2px dashed ${drag?"#ec4899":"#4b5563"}`, borderRadius:12, padding:"24px 16px", textAlign:"center", cursor:"pointer", background:drag?"rgba(236,72,153,0.1)":"transparent", marginBottom:10 }}
           >
             <img
-              src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PSA%20Retro%20Final.png"
+              src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PSARetro-fotor-bg-remover-20260319222935.png"
               alt="upload"
               style={{ width:60, height:60, objectFit:"contain", display:"block", margin:"0 auto 8px", pointerEvents:"none" }}
             />
@@ -97,7 +97,7 @@ export default function App() {
   const [paypalEmailConfirm, setPaypalEmailConfirm] = useState("");
   const [certNumber, setCertNumber] = useState("");
   const [cardInfo, setCardInfo] = useState<any>(null);
-  const [psaData, setPsaData] = useState<any>(null);
+  const [pcgsData, setPcgsData] = useState<any>(null);
   const [comps, setComps] = useState<any>(null);
   const [offer, setOffer] = useState<any>(null);
   const [offerId, setOfferId] = useState<string | null>(null);
@@ -395,7 +395,7 @@ export default function App() {
       {/* Header */}
       <div style={{ background:"#000", borderBottom:"1px solid #1a0a2e", padding:"2px 16px", position:"sticky", top:0, zIndex:100, display:"flex", justifyContent:"center" }}>
         <img
-          src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PSA%20Retro%20Final.png"
+          src="https://sqqomyxiwvejlhidbjef.supabase.co/storage/v1/object/public/Assets/PSARetro-fotor-bg-remover-20260319222935.png"
           alt="GPK BuyBack"
           onClick={() => window.location.href="/"}
           style={{ height:240, objectFit:"contain", cursor:"pointer" }}
@@ -435,10 +435,10 @@ export default function App() {
             {/* STEP 1 */}
             {step === 1 && (
               <>
-                <h2 style={{ margin:"0 0 6px", fontSize:20 }}>Submit Your Card</h2>
-                <p style={{ color:"#6b7280", fontSize:13, margin:"0 0 16px" }}>Enter a PSA cert #, upload a photo, or both. Only PSA graded cards are eligible.</p>
+                <h2 style={{ margin:"0 0 6px", fontSize:20 }}>Submit Your Coin</h2>
+                <p style={{ color:"#6b7280", fontSize:13, margin:"0 0 16px" }}>Enter a PCGS cert #, upload a photo, or both. Only PCGS graded coins are eligible.</p>
                 <div style={{ marginBottom:16 }}>
-                  <label style={{ color:"#9ca3af", fontSize:12, display:"block", marginBottom:6 }}>PSA Cert #</label>
+                  <label style={{ color:"#9ca3af", fontSize:12, display:"block", marginBottom:6 }}>PCGS Cert #</label>
                   <input style={{ ...inp, fontFamily:"monospace" }} value={certNumber} onChange={e => { setCertNumber(e.target.value); setError(null); setGradedError(false); }} onKeyDown={e => { if (e.key === "Enter") identifyCard(); }} placeholder="e.g. 12345678" />
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
@@ -446,15 +446,15 @@ export default function App() {
                   <span style={{ color:"#4b5563", fontSize:12 }}>and / or</span>
                   <div style={{ flex:1, height:1, background:"#1f2937" }} />
                 </div>
-                <UploadZone onFile={handleFile} preview={preview} label="Drop card image or tap to upload" />
+                <UploadZone onFile={handleFile} preview={preview} label="Drop coin image or tap to upload" />
                 {gradedError && (
                   <div style={{ background:"#451a03", border:"1px solid #f97316", borderRadius:10, padding:14, marginTop:14, textAlign:"center" }}>
                     <p style={{ margin:"0 0 4px", fontSize:15 }}>&#9888; Ungraded Card Detected</p>
-                    <p style={{ margin:0, color:"#fdba74", fontSize:13 }}>We only make offers on PSA or BGS graded cards.</p>
+                    <p style={{ margin:0, color:"#fdba74", fontSize:13 }}>We only make offers on PCGS graded coins.</p>
                   </div>
                 )}
                 <button onClick={identifyCard} disabled={loading || (!imgBase64 && !certNumber)} style={btn("linear-gradient(to right,#9333ea,#ec4899)", loading || (!imgBase64 && !certNumber))}>
-                  {loading ? <span style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}><Spinner />{loadingMsg}</span> : "Submit To Identify Card"}
+                  {loading ? <span style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}><Spinner />{loadingMsg}</span> : "Submit To Identify Coin"}
                 </button>
                 {!imgBase64 && !certNumber && <p style={{ color:"#4b5563", fontSize:12, textAlign:"center", marginTop:8 }}>Enter a cert # or upload a photo to continue.</p>}
               </>
