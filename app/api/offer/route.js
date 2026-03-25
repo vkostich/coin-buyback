@@ -45,4 +45,64 @@ function calcOffer(grade, fmv) {
   }
 
   let pct;
-  if (grade
+  if (gradeNum === 70)      pct = 0.72;
+  else if (gradeNum === 69) pct = 0.67;
+  else if (gradeNum >= 67)  pct = 0.57;
+  else if (gradeNum >= 65)  pct = 0.52;
+  else if (gradeNum >= 63)  pct = 0.45;
+  else if (gradeNum >= 60)  pct = 0.40;
+  else                      pct = 0.35;
+
+  const MIN_OFFER = 25;
+  const rawOffer = Math.floor(fmv * pct);
+
+  if (rawOffer < MIN_OFFER) {
+    return { offer: 0, eligible: false, reason: `Offer below minimum threshold ($${MIN_OFFER})` };
+  }
+
+  return {
+    offer: rawOffer,
+    eligible: true,
+    pct: Math.round(pct * 100),
+    upfront: Math.round(rawOffer * 0.5),
+    onDelivery: Math.round(rawOffer * 0.5)
+  };
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { grade, priceGuide, soldRecords } = body;
+
+    if (!grade) {
+      return NextResponse.json({ error: 'Grade is required' }, { status: 400 });
+    }
+
+    const { fmv, source, compsUsed, compsDetail } = calcFMV(
+      soldRecords || [],
+      priceGuide || 0
+    );
+
+    if (!fmv) {
+      return NextResponse.json({
+        error: 'Insufficient pricing data to generate offer',
+        eligible: false
+      }, { status: 422 });
+    }
+
+    const offerResult = calcOffer(grade, fmv);
+
+    return NextResponse.json({
+      ...offerResult,
+      fmv,
+      fmvSource: source,
+      compsUsed,
+      compsDetail,
+      priceGuideReference: priceGuide || null
+    });
+
+  } catch (err) {
+    console.error('Offer engine error:', err);
+    return NextResponse.json({ error: 'Offer calculation failed' }, { status: 500 });
+  }
+}
